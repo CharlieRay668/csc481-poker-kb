@@ -30,10 +30,10 @@ top_pair(Board, Hand) :-
         rank_value(Com, V), V >= 2.
 
 %% --------------------------------------------------------------------
-%%  TINY strategic knowledge  (enough to test the pipeline)
+%%  small strategic knowledge  (enough to test the pipeline)
 %% --------------------------------------------------------------------
 
-/* --- Pre‑flop opening decisions ------------------------------------*/
+/* Pre‑flop opening decisions */
 good_open(Hand)         :- strong_pair(Hand).
 good_open(Hand)         :- Hand = [king, queen | _].
 
@@ -44,11 +44,11 @@ best_action(preflop, Hand, _Pot, raise) :-
         good_open(Hand), !.
 best_action(preflop, _Hand, _Pot, call).
 
-/* --- Flop continuation‑bet heuristic -------------------------------*/
+/* Flop continuation‑bet heuristic */
 best_action(flop, Hand, Board, bet) :-
         cbet_ok(Hand, Board), !.
 
-/* --- Simple villain style tagging  ---------------------------------*/
+/* Simple villain style tagging */
 vpip_thresh(loose,    0.35).
 vpip_thresh(tight,    0.25).
 
@@ -56,5 +56,3 @@ villain_style(Vpip, loose) :-
         vpip_thresh(loose,T), Vpip  >= T.
 villain_style(Vpip, tight) :-
         vpip_thresh(tight,T), Vpip  <  T.
-
-%% -------------- end of file ----------------------------------------
