@@ -72,7 +72,7 @@ class StyleBN:
 
     def predict(self, street: str) -> Dict[Action, float]:
         """
-        Return predictive distribution over villain’s next action on the
+        Return predictive distribution over opponent's next action on the
         given street (\"preflop\" | \"flop\")  via
         Sum over style  P(A | style) P(style)   – textbook chain rule
         """
