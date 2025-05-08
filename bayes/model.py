@@ -41,10 +41,10 @@ class StyleBN:
     """
 
     def __init__(self, alpha: float = 1.0) -> None:
-        # P(Style)  – 1×4   prior counts
+        # P(Style)  1x4   prior counts
         self.prior = np.full(len(Style), alpha)
 
-        # CPTs:  Style → Action   (4×3)  per street
+        # CPTs:  Style Action   (4x3)  per street
         self.cpt_pf  = _dirichlet_map(len(Style), len(Action), alpha)
         self.cpt_fl  = _dirichlet_map(len(Style), len(Action), alpha)
 
@@ -54,7 +54,7 @@ class StyleBN:
         """
         One complete hand gives exactly two observations (pre‑flop +
         flop).  We treat Style as latent and integrate it out with
-        Bayes rule as in textbook §12.3.2
+        Bayes rule as in textbook 12.3.2
         """
         # P(Style | evidence so far)  (length‑4)
         post = self.posterior_style()
