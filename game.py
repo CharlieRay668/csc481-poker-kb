@@ -1,4 +1,3 @@
-# game.py
 # This file contains the logic for playing a single hand of Leduc Poker between
 # an adaptive bot and an opponent with a fixed policy.
 

@@ -1,4 +1,3 @@
-# utils.py
 # This file contains utility functions for game logic, information set generation,
 # and policy manipulation used across different parts of the Leduc Poker bot.
 

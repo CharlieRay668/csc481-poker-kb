@@ -1,4 +1,3 @@
-# fixed.py
 # This file provides functions to create fixed (non-learning) opponent policies,
 # such as a uniformly random policy or an always-raise aggressive policy.
 

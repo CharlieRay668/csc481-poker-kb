@@ -1,4 +1,3 @@
-# bayes.py
 # This file implements the Bayesian Opponent Model using a Dirichlet distribution
 # to maintain beliefs about the opponent's strategy at each information set.
 

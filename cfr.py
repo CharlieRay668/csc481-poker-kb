@@ -1,4 +1,3 @@
-# cfr.py
 # Implements the Counterfactual Regret Minimization (CFR) algorithm.
 # This version calculates utilities based on chip differences and can be trained incrementally.
 

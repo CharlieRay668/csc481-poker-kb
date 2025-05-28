@@ -1,4 +1,3 @@
-# bot.py
 # Implements the AdaptivePokerBot, which uses a Bayesian opponent model
 # and incrementally trains a CFR model to adapt its strategy.
 

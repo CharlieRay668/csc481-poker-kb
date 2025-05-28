@@ -1,4 +1,3 @@
-# simulate.py
 # This is the main driver script for running Leduc Poker simulations.
 # It sets up the adaptive bot, defines opponents, runs simulations, and plots results.
 

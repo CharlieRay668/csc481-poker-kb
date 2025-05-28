@@ -1,4 +1,3 @@
-# constants.py
 # This file defines the core constants for the Leduc Hold'em game.
 
 # Card ranks used in the game
