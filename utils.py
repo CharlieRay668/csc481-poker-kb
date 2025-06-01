@@ -71,27 +71,6 @@ def determine_showdown_winner(p0_card, p1_card, public_card):
     p0_has_pair = (p0_card == public_card)
     p1_has_pair = (p1_card == public_card)
 
-    # If one player has a pair and the other doesn't, the player with the pair wins.
-    if p0_has_pair and not p1_has_pair:
-        return 1
-    if p1_has_pair and not p0_has_pair:
-        return -1
-
-    # If both have pairs or neither has a pair, the player with the higher-ranking private card wins.
-    # (Note: if both have pairs, their pairs are of the same rank as the public card,
-    # so kicker doesn't apply with Leduc rules, high card of private card breaks tie).
-    # Actually, the problem implies the private card is the primary rank determiner.
-    # If p0_has_pair AND p1_has_pair, means both private cards match public. This implies public card is same for both (impossible if unique cards)
-    # OR private cards are same rank as public. e.g. J J, pub J. Q Q, pub Q. K K, pub K.
-    # Let's re-evaluate showdown for Leduc:
-    # 1. Pair beats high card.
-    # 2. If both pair, higher pair wins (not possible in 1-card Leduc unless public card is different rank for players, which is not how it works).
-    #    This means if both pair, they pair with the public card, so their "pair rank" is RANK_VALUE[public_card].
-    #    Then, their private card is used as a kicker if the pairs are the same (which they are).
-    #    So if both pair, it comes down to their private card rank.
-    # 3. If neither pair, high card wins.
-
-    # Corrected Leduc Showdown:
     # A pair with the board card is the strongest hand.
     # If player 0 has a pair and player 1 does not, player 0 wins.
     if p0_has_pair and not p1_has_pair:
@@ -99,9 +78,11 @@ def determine_showdown_winner(p0_card, p1_card, public_card):
     # If player 1 has a pair and player 0 does not, player 1 wins.
     if p1_has_pair and not p0_has_pair:
         return -1
-    # If both players have a pair (their private card matches the public card),
-    # or if neither player has a pair, the winner is determined by the rank of their private card.
+    # if neither player has a pair, the winner is determined by the rank of their private card.
     # (In the case of both having a pair, they both pair the same public card, so their private cards break the tie)
+    # if there is a tie, return 0
+    if RANK_VALUE[p0_card] == RANK_VALUE[p1_card]:
+        return 0
     if RANK_VALUE[p0_card] > RANK_VALUE[p1_card]:
         return 1
     else: # RANK_VALUE[p1_card] > RANK_VALUE[p0_card] (cards are unique, so values can't be equal)

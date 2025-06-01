@@ -7,12 +7,12 @@ from cfr import CFRTrainer
 from utils import complete_policy, ALL_INFOSETS, LEGAL_ACTIONS_AT_INFOSET # For fallback strategy
 
 class AdaptivePokerBot:
-    def __init__(self, initial_equilibrium_policy):
+    def __init__(self, initial_equilibrium_policy, prior_belief=None):
         # The bot starts with a baseline strategy (e.g., a pre-computed Nash equilibrium).
         self.base_equilibrium_policy = complete_policy(initial_equilibrium_policy) # Ensure it's complete
 
         # The Bayesian model to learn the opponent's tendencies.
-        self.bayesian_opponent_model = BayesianOpponentModel()
+        self.bayesian_opponent_model = BayesianOpponentModel(prior_belief)
 
         # The CFR trainer to compute a best response to the opponent model.
         self.response_cfr_trainer = CFRTrainer()
@@ -47,7 +47,6 @@ class AdaptivePokerBot:
             # Ensure this estimated policy is complete (covers all infosets).
             # get_posterior_strategy should provide uniform for unobserved infosets if handled well.
             # The original used: opp = {k:self.bayes.posterior(k) for k in INFO_SETS}
-            # My bayes.get_posterior_strategy has a fallback for unknown keys.
 
             # Train the CFR model to find a best response to this estimated opponent policy.
             # Note: The CFR trainer's internal state (regrets, strategy sums) will evolve.
@@ -70,21 +69,21 @@ class AdaptivePokerBot:
         # Fallback to the base equilibrium if the info set is somehow not in the current policy.
         strategy_profile = self.current_acting_policy.get(own_info_set_key)
 
-        if not strategy_profile: # Fallback if info_set_key is missing
-            # This could happen if current_acting_policy became incomplete somehow
-            # Or if own_info_set_key is for a state not covered by ALL_INFOSETS (error)
-            # Default to base equilibrium policy for safety
-            strategy_profile = self.base_equilibrium_policy.get(own_info_set_key)
-            if not strategy_profile: # Ultimate fallback: uniform random for this specific infoset
-                legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
-                if not legal_actions_list: return None # No actions possible (should be terminal)
-                return random.choice(legal_actions_list) # Should be weighted choice
+        # if not strategy_profile: # Fallback if info_set_key is missing
+        #     # This could happen if current_acting_policy became incomplete somehow
+        #     # Or if own_info_set_key is for a state not covered by ALL_INFOSETS (error)
+        #     # Default to base equilibrium policy for safety
+        #     strategy_profile = self.base_equilibrium_policy.get(own_info_set_key)
+        #     if not strategy_profile: # Ultimate fallback: uniform random for this specific infoset
+        #         legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
+        #         if not legal_actions_list: return None # No actions possible (should be terminal)
+        #         return random.choice(legal_actions_list) # Should be weighted choice
 
-        # Ensure strategy_profile is not empty (e.g., for terminal but somehow reached)
-        if not strategy_profile:
-            legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
-            if not legal_actions_list: return None # Should be terminal
-            return random.choice(legal_actions_list)
+        # # Ensure strategy_profile is not empty (e.g., for terminal but somehow reached)
+        # if not strategy_profile:
+        #     legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
+        #     if not legal_actions_list: return None # Should be terminal
+        #     return random.choice(legal_actions_list)
 
 
         # Unpack actions and their probabilities from the strategy profile.
@@ -92,16 +91,16 @@ class AdaptivePokerBot:
         probabilities = list(strategy_profile.values())
 
         # Ensure probabilities sum to 1 (or close enough) for random.choices
-        if not (0.999 < sum(probabilities) < 1.001) and sum(probabilities) != 0 :
-            # Normalize if not summing to 1, can happen due to float precision or incomplete policy part
-            # print(f"Warning: Probabilities for {own_info_set_key} do not sum to 1: {sum(probabilities)}. Normalizing.")
-            total_prob = sum(probabilities)
-            if total_prob == 0: # All probabilities are zero, pick uniformly
-                 return random.choice(actions) if actions else None
-            probabilities = [p / total_prob for p in probabilities]
+        # if not (0.999 < sum(probabilities) < 1.001) and sum(probabilities) != 0 :
+        #     # Normalize if not summing to 1, can happen due to float precision or incomplete policy part
+        #     # print(f"Warning: Probabilities for {own_info_set_key} do not sum to 1: {sum(probabilities)}. Normalizing.")
+        #     total_prob = sum(probabilities)
+        #     if total_prob == 0: # All probabilities are zero, pick uniformly
+        #          return random.choice(actions) if actions else None
+        #     probabilities = [p / total_prob for p in probabilities]
 
 
-        # Randomly choose an action based on the probabilities in the strategy.
-        if not actions: return None # Should not happen for a valid infoset
+        # # Randomly choose an action based on the probabilities in the strategy.
+        # if not actions: return None # Should not happen for a valid infoset
         chosen_action = random.choices(actions, weights=probabilities, k=1)[0]
         return chosen_action

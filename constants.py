@@ -19,7 +19,7 @@ MAX_RAISES_POSTFLOP = 2
 ANTE = 1
 
 # Bet/Raise size for the pre-flop round
-PREFLOP_BET_SIZE = 1
+PREFLOP_BET_SIZE = 2
 
 # Bet/Raise size for the post-flop round (typically double the pre-flop)
 POSTFLOP_BET_SIZE = 2

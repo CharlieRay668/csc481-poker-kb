@@ -39,3 +39,97 @@ def create_fixed_policy(style_name):
             raise ValueError(f"Unknown fixed policy style: {style_name}")
             
     return policy
+
+def copy_policy(policy):
+    """
+    Creates a deep copy of the given policy.
+    This is useful to ensure that modifications to the copied policy do not affect the original.
+    """
+    return {info_set: actions.copy() for info_set, actions in policy.items()}
+
+def shift_agressive(policy, alpha=0.1):
+    """
+    Shifts any policy towards a more aggressive stance.
+    Moves alpha probability mass towards 'raise' actions away from 'call' or 'check'.
+    Does not modify probabilities if 'raise' is not a legal action at the info set.
+    Does not modify fold actions.
+    """
+    new_policy = copy_policy(policy)
+    for info_set, actions in new_policy.items():
+        if 'r' in actions:  # Only shift if 'raise' is a legal action
+            if 'c' in actions:
+                # Shift alpha probability mass from 'call' to 'raise'
+                actions['r'] += alpha * actions['c']
+                actions['c'] -= alpha * actions['c']
+
+            # Normalize the probabilities to ensure they sum to 1
+            total_prob = sum(actions.values())
+            for action in actions:
+                actions[action] /= total_prob
+
+    return new_policy
+
+def shift_passive(policy, alpha=0.1):
+    """
+    Shifts any policy towards a more passive stance.
+    Moves alpha probability mass towards 'call' or 'check' actions away from 'raise'.
+    Does not modify probabilities if 'raise' is not a legal action at the info set.
+    Does not modify fold actions.
+    """
+    new_policy = copy_policy(policy)
+    for info_set, actions in new_policy.items():
+        if 'r' in actions:  # Only shift if 'raise' is a legal action
+            if 'c' in actions:
+                # Shift alpha probability mass from 'raise' to 'call'
+                actions['c'] += alpha * actions['r']
+                actions['r'] -= alpha * actions['r']
+
+            # Normalize the probabilities to ensure they sum to 1
+            total_prob = sum(actions.values())
+            for action in actions:
+                actions[action] /= total_prob
+
+    return new_policy
+
+
+def shift_loose(policy, alpha=0.1):
+    """
+    Shifts any policy towards a looser stance.
+    Moves alpha probability mass towards 'call' or 'check' actions away from 'fold'.
+    Does not modify probabilities if 'fold' is not a legal action at the info set.
+    """
+    new_policy = copy_policy(policy)
+    for info_set, actions in new_policy.items():
+        if 'f' in actions:  # Only shift if 'fold' is a legal action
+            if 'c' in actions:
+                # Shift alpha probability mass from 'fold' to 'call'
+                actions['c'] += alpha * actions['f']
+                actions['f'] -= alpha * actions['f']
+
+            # Normalize the probabilities to ensure they sum to 1
+            total_prob = sum(actions.values())
+            for action in actions:
+                actions[action] /= total_prob
+
+    return new_policy
+
+def shift_tight(policy, alpha=0.1):
+    """
+    Shifts any policy towards a tighter stance.
+    Moves alpha probability mass towards 'fold' actions away from 'call' or 'check'.
+    Does not modify probabilities if 'fold' is not a legal action at the info set.
+    """
+    new_policy = copy_policy(policy)
+    for info_set, actions in new_policy.items():
+        if 'f' in actions:  # Only shift if 'fold' is a legal action
+            if 'c' in actions:
+                # Shift alpha probability mass from 'call' to 'fold'
+                actions['f'] += alpha * actions['c']
+                actions['c'] -= alpha * actions['c']
+
+            # Normalize the probabilities to ensure they sum to 1
+            total_prob = sum(actions.values())
+            for action in actions:
+                actions[action] /= total_prob
+
+    return new_policy
