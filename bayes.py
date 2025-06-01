@@ -16,7 +16,7 @@ class BayesianOpponentModel:
             # This should be a dictionary mapping info set keys to action counts.
             for info_set_key, action_counts in self.prior_belief.items():
                 # scale action counts by 10 to give more emphasis to prior belief
-                # action_counts = {action: count * 1 for action, count in action_counts.items()}
+                action_counts = {action: count * 1 for action, count in action_counts.items()}
                 self.alpha_counts[info_set_key] = action_counts
         else:
             # If no prior belief is provided, initialize all info sets with a small count for each legal action.

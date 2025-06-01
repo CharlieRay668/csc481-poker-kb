@@ -67,22 +67,14 @@ def run_simulation(player_strat, opponent_style_name, opponent_policy, num_hands
     # Start with an arbitrary initial bankroll (e.g., 0, as we track changes).
     # The original started with 1000, let's use 0 and plot cumulative winnings.
     bankroll_history = [0.0] # Initial bankroll before any hands
-    bot_wins = 0
     for hand_num in range(num_hands):
         if hand_num % (num_hands // 10) == 0 and hand_num > 0 : # Print progress
              print(f"  Simulating hand {hand_num}/{num_hands} against {opponent_style_name}...")
         # Play one hand and get the payoff for the adaptive bot.
         payoff_for_adaptive_bot = play_one_hand(adaptive_bot, opponent_policy, adaptive_update=adaptive_update)
-        if payoff_for_adaptive_bot % 2 != 0:
-            raise ValueError(f"Payoff for adaptive bot is not even: {payoff_for_adaptive_bot}. This should not happen.")
-        # if payoff_for_adaptive_bot > 0:
-        #     bot_wins += 1
-        #     print(f"  Adaptive bot won hand {hand_num + 1} with payoff: {payoff_for_adaptive_bot}")
-        # Update the bankroll with the result of the hand.
         bankroll_history.append(bankroll_history[-1] + payoff_for_adaptive_bot)
     
     print(f"Simulation vs {opponent_style_name} complete. Final bankroll change: {bankroll_history[-1]}")
-    print(f"Adaptive bot won {bot_wins} out of {num_hands} hands ({bot_wins / num_hands * 100:.2f}%).")
     return bankroll_history
 
 
@@ -205,32 +197,53 @@ if __name__ == '__main__':
         save_nash_policy(complete_nash_policy, 'nash_policy.json')
     
     num_simulation_hands = 10000  # Number of hands for each simulation
+    num_trials = 100
+    total_uniform_results = []
+    total_aggressive_results = []
+    total_uniform_results_no_update = []
+    total_aggressive_results_no_update = []
 
-    uniform_results = simulate_uniform(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=True)
-    aggressive_results = simulate_aggressive(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=True)
-    uniform_results_no_update = simulate_uniform(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=False)
-    aggressive_results_no_update = simulate_aggressive(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=False)
-    # plot
+    for trial in range(num_trials):
+        uniform_results = simulate_uniform(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=True)
+        aggressive_results = simulate_aggressive(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=True)
+        uniform_results_no_update = simulate_uniform(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=False)
+        aggressive_results_no_update = simulate_aggressive(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=False)
+        total_uniform_results.append(uniform_results['uniform'])
+        total_aggressive_results.append(aggressive_results['aggressive'])
+        total_uniform_results_no_update.append(uniform_results_no_update['uniform'])
+        total_aggressive_results_no_update.append(aggressive_results_no_update['aggressive'])
+
+    # Average the results across trials
+    avg_uniform_results = [sum(x) / num_trials for x in zip(*total_uniform_results)]
+    avg_aggressive_results = [sum(x) / num_trials for x in zip(*total_aggressive_results)]
+    avg_uniform_results_no_update = [sum(x) / num_trials for x in zip(*total_uniform_results_no_update)]
+    avg_aggressive_results_no_update = [sum(x) / num_trials for x in zip(*total_aggressive_results_no_update)]
+    # Plot the results
     plt.figure(figsize=(12, 7))
-    # Plot uniform results
-    for opponent_name, bankroll_history in uniform_results.items():
-        plt.plot(bankroll_history, label=f'Adaptive Bot vs {opponent_name} (with updates)')
-    for opponent_name, bankroll_history in uniform_results_no_update.items():
-        plt.plot(bankroll_history, label=f'Adaptive Bot vs {opponent_name} (no updates)', linestyle='--')
-    # Plot aggressive results
-    for opponent_name, bankroll_history in aggressive_results.items():
-        plt.plot(bankroll_history, label=f'Adaptive Bot vs {opponent_name} (with updates)')
-    for opponent_name, bankroll_history in aggressive_results_no_update.items():
-        plt.plot(bankroll_history, label=f'Adaptive Bot vs {opponent_name} (no updates)', linestyle='--')
+    plt.plot(avg_uniform_results, label='Adaptive Bot vs Uniform Opponent (with updates)', color='blue')
+    plt.plot(avg_aggressive_results, label='Adaptive Bot vs Aggressive Opponent (with updates)', color='orange')
+    plt.plot(avg_uniform_results_no_update, label='Adaptive Bot vs Uniform Opponent (no updates)', color='blue', linestyle='--')
+    plt.plot(avg_aggressive_results_no_update, label='Adaptive Bot vs Aggressive Opponent (no updates)', color='orange', linestyle='--')
+    # Plot all intermediate results with transparency
+    for i in range(num_trials):
+        plt.plot(total_uniform_results[i], color='blue', alpha=0.1)
+        plt.plot(total_aggressive_results[i], color='orange', alpha=0.1)
+        plt.plot(total_uniform_results_no_update[i], color='blue', linestyle='--', alpha=0.1)
+        plt.plot(total_aggressive_results_no_update[i], color='orange', linestyle='--', alpha=0.1)
     plt.xlabel('Hand Number')
     plt.ylabel('Adaptive Bot Cumulative Payoff (Bankroll Change)')
-    plt.title(f'Adaptive Bot vs Fixed Opponents (Alpha Variations, {num_simulation_hands} Hands Each)')
+    plt.title(f'Adaptive Bot Performance vs Fixed Opponents (Alpha Variations, {num_simulation_hands} Hands Each)')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     plt.tight_layout()  # Adjusts plot to ensure everything fits without overlapping
     # Save the plot to a file
-    # plt.savefig('adaptive_bot_vs_fixed_opponents.png')
+    plt.savefig('adaptive_bot_vs_fixed_opponents.png')
     plt.show()
+    # Print out differences in final bankrolls for the averages
+    print(f"Average final bankroll change against uniform opponent (with updates): {avg_uniform_results[-1]:.2f}")
+    print(f"Average final bankroll change against aggressive opponent (with updates): {avg_aggressive_results[-1]:.2f}")
+    print(f"Average final bankroll change against uniform opponent (no updates): {avg_uniform_results_no_update[-1]:.2f}")
+    print(f"Average final bankroll change against aggressive opponent (no updates): {avg_aggressive_results_no_update[-1]:.2f}")
 
 
     # sim_nash_uniform_aggressive(complete_nash_policy, num_hands=num_simulation_hands, adaptive_update=False)
