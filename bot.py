@@ -66,39 +66,11 @@ class AdaptivePokerBot:
     # Decides on an action to take at the given information set.
     def choose_action(self, own_info_set_key):
         # Get the strategy for the current info set from the bot's current policy.
-        # Fallback to the base equilibrium if the info set is somehow not in the current policy.
         strategy_profile = self.current_acting_policy.get(own_info_set_key)
-
-        # if not strategy_profile: # Fallback if info_set_key is missing
-        #     # This could happen if current_acting_policy became incomplete somehow
-        #     # Or if own_info_set_key is for a state not covered by ALL_INFOSETS (error)
-        #     # Default to base equilibrium policy for safety
-        #     strategy_profile = self.base_equilibrium_policy.get(own_info_set_key)
-        #     if not strategy_profile: # Ultimate fallback: uniform random for this specific infoset
-        #         legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
-        #         if not legal_actions_list: return None # No actions possible (should be terminal)
-        #         return random.choice(legal_actions_list) # Should be weighted choice
-
-        # # Ensure strategy_profile is not empty (e.g., for terminal but somehow reached)
-        # if not strategy_profile:
-        #     legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(own_info_set_key, [])
-        #     if not legal_actions_list: return None # Should be terminal
-        #     return random.choice(legal_actions_list)
-
 
         # Unpack actions and their probabilities from the strategy profile.
         actions = list(strategy_profile.keys())
         probabilities = list(strategy_profile.values())
-
-        # Ensure probabilities sum to 1 (or close enough) for random.choices
-        # if not (0.999 < sum(probabilities) < 1.001) and sum(probabilities) != 0 :
-        #     # Normalize if not summing to 1, can happen due to float precision or incomplete policy part
-        #     # print(f"Warning: Probabilities for {own_info_set_key} do not sum to 1: {sum(probabilities)}. Normalizing.")
-        #     total_prob = sum(probabilities)
-        #     if total_prob == 0: # All probabilities are zero, pick uniformly
-        #          return random.choice(actions) if actions else None
-        #     probabilities = [p / total_prob for p in probabilities]
-
 
         # # Randomly choose an action based on the probabilities in the strategy.
         # if not actions: return None # Should not happen for a valid infoset

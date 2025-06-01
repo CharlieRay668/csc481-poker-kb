@@ -28,33 +28,14 @@ class BayesianOpponentModel:
 
     # Observes an action taken by the opponent at a given information set and updates the model.
     def observe_action(self, info_set_key, observed_action):
-        # If this information set hasn't been seen before (e.g., due to sparse game play),
-        # initialize its alpha counts with a default (e.g., 1.0 for each action).
-        # This is a fallback, ideally all infosets are pre-initialized.
-        # if info_set_key not in self.alpha_counts:
-        #     legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(info_set_key, [])
-        #     if not legal_actions_list: return # Should not happen for valid game play observation
-        #     self.alpha_counts[info_set_key] = {action: 1.0 for action in legal_actions_list}
-
         # Increment the count for the observed action at this information set.
         # This is the core of the Dirichlet update.
         if observed_action in self.alpha_counts[info_set_key]:
             self.alpha_counts[info_set_key][observed_action] += 1
-        # else: handle case where an illegal action is observed? For now, assume valid actions.
 
     # Calculates the posterior probability distribution over actions for a given information set.
     # This is the opponent's estimated strategy based on observations.
     def get_posterior_strategy(self, info_set_key):
-        # If the info set is unknown or has no actions, return an empty strategy.
-        # if info_set_key not in self.alpha_counts or not self.alpha_counts[info_set_key]:
-        #      # Fallback: If an infoset was somehow missed, provide a uniform strategy
-        #     legal_actions_list = LEGAL_ACTIONS_AT_INFOSET.get(info_set_key, [])
-        #     if not legal_actions_list: return {}
-        #     return {action: 1.0 / len(legal_actions_list) for action in legal_actions_list}
-
-        # print(self.prior_belief)
-        # print(self.alpha_counts, info_set_key)
-        # print(info_set_key)
         current_counts = self.alpha_counts[info_set_key]
         total_counts = sum(current_counts.values())
 
