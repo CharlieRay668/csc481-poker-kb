@@ -1,0 +1,17 @@
+{
+  "sim_params": {
+    "name": "uniform_opponents",
+    "alpha": null,
+    "hands": 1000,
+    "trials": 10
+  },
+  "adaptive_perf": {
+    "uniform": 1580.8
+  },
+  "nash_perf": {
+    "uniform": 1589.8
+  },
+  "adaptive_kl": {
+    "uniform": 122.00383707963184
+  }
+}

@@ -16,18 +16,25 @@ class AdaptivePokerBot:
 
         # The CFR trainer to compute a best response to the opponent model.
         self.response_cfr_trainer = CFRTrainer()
-        # Initialize CFR trainer (e.g. by training 0 iterations or loading state if applicable)
-        # The original trained with opp_pol = self.eq_policy, iterations = 0.
-        # This seems to be just for initializing internal structures or if train had side effects.
-        # My CFRTrainer does not require this. It's ready.
 
-        # The current policy the bot uses for acting. Initially, it's the base equilibrium.
+        # The current policy the bot uses for acting. Initially, it's nash.
         self.current_acting_policy = dict(self.base_equilibrium_policy)
 
         # Counter for observations before triggering a policy update.
         self.observations_since_last_update = 0
         self.update_batch_size = 10 # Update policy every 10 observations
         self.cfr_update_iterations = 200 # Number of CFR iterations for each update
+        self.prior_strength_for_cfr = 10000
+        self._seed_cfr_with_base_policy()
+
+    def _seed_cfr_with_base_policy(self):
+        """Seeds the CFR trainer's strategy sum with the base equilibrium policy."""
+        self.response_cfr_trainer.seed_strategy_sum(
+            self.base_equilibrium_policy, 
+            self.prior_strength_for_cfr
+        )
+        # Regrets should be cleared before new BR training starts.
+        # train_iterations will handle this if reset_regrets_before_training=True.
 
     # Observes the opponent's action and updates the Bayesian model.
     # Triggers a policy recalculation if enough observations have been made.
@@ -53,7 +60,7 @@ class AdaptivePokerBot:
             # We are re-training/incrementally training the same CFR instance.
             self.response_cfr_trainer.train_iterations(
                 num_iterations=self.cfr_update_iterations,
-                fixed_opponent_policy=complete_policy(estimated_opponent_policy) # Ensure completeness
+                inferred_op_policy=complete_policy(estimated_opponent_policy)
             )
             
             # The new acting policy is the average strategy from this CFR training.
@@ -76,3 +83,10 @@ class AdaptivePokerBot:
         # if not actions: return None # Should not happen for a valid infoset
         chosen_action = random.choices(actions, weights=probabilities, k=1)[0]
         return chosen_action
+    
+    def get_opponent_belief(self):
+        """
+        Returns the current belief about the opponent's strategy at the given information set.
+        This is useful for debugging or understanding the bot's internal state.
+        """
+        return self.bayesian_opponent_model.get_full_posterior_policy()

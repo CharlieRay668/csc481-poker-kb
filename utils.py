@@ -90,7 +90,7 @@ def determine_showdown_winner(p0_card, p1_card, public_card):
         return 0
     if RANK_VALUE[p0_card] > RANK_VALUE[p1_card]:
         return 1
-    else: # RANK_VALUE[p1_card] > RANK_VALUE[p0_card] (cards are unique, so values can't be equal)
+    else:
         return -1
 
 

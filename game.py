@@ -15,6 +15,7 @@ def play_one_hand(adaptive_bot, opponent_fixed_policy, adaptive_update=True):
 
 
     public_card = None
+    estimated_policy = None
     preflop_history_str = ""
     postflop_history_str = ""
     pot = ANTE * 2
@@ -37,16 +38,16 @@ def play_one_hand(adaptive_bot, opponent_fixed_policy, adaptive_update=True):
 
         if preflop_history_str.endswith('f'):
             if is_adaptive_bot_turn:
-                return pot, current_history
+                return pot, current_history, estimated_policy
             else:
-                return -pot, current_history
+                return -pot, current_history, estimated_policy
             # return pot, current_history if is_adaptive_bot_turn else -pot, current_history
         
         if postflop_history_str and postflop_history_str.endswith('f'):
             if is_adaptive_bot_turn:
-                return pot, current_history
+                return pot, current_history, estimated_policy
             else:
-                return -pot, current_history
+                return -pot, current_history, estimated_policy
             # return pot, current_history if is_adaptive_bot_turn else -pot, current_history
 
         # check if game has ended
@@ -54,11 +55,11 @@ def play_one_hand(adaptive_bot, opponent_fixed_policy, adaptive_update=True):
             winner_idx = determine_showdown_winner(p0_private_card, p1_private_card, public_card)
             if winner_idx == 0:
                 # tie
-                return 0, current_history
+                return 0, current_history, estimated_policy
             elif winner_idx == 1:
-                return pot, current_history
+                return pot, current_history, estimated_policy
             else:
-                return -pot, current_history
+                return -pot, current_history, estimated_policy
         
         # Game has not ended, take an action
         if acting_player_idx == 0:
@@ -73,6 +74,7 @@ def play_one_hand(adaptive_bot, opponent_fixed_policy, adaptive_update=True):
             # print(f"Opponent action at {info_set_key}: {action}")
             if adaptive_update:
                 adaptive_bot.observe_opponent_action(info_set_key, action)
+                estimated_policy = adaptive_bot.get_opponent_belief()
         bet_size_this_round = POSTFLOP_BET_SIZE if public_card else PREFLOP_BET_SIZE
         current_round_hist_for_prev_action = postflop_history_str if public_card else preflop_history_str
         previous_action_in_round = current_round_hist_for_prev_action[-1] if current_round_hist_for_prev_action else ''

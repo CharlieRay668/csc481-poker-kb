@@ -11,12 +11,13 @@ class BayesianOpponentModel:
         # we start with a small prior count (e.g., 0.1). This represents weak prior belief.
         self.alpha_counts = {}
         self.prior_belief = prior_belief
+        self.learning_rate = 2
         if self.prior_belief is not None:
             # If a prior belief is provided, use it to initialize alpha counts.
             # This should be a dictionary mapping info set keys to action counts.
             for info_set_key, action_counts in self.prior_belief.items():
                 # scale action counts by 10 to give more emphasis to prior belief
-                action_counts = {action: count * 1 for action, count in action_counts.items()}
+                action_counts = {action: count * 0.1 for action, count in action_counts.items()}
                 self.alpha_counts[info_set_key] = action_counts
         else:
             # If no prior belief is provided, initialize all info sets with a small count for each legal action.
@@ -31,7 +32,7 @@ class BayesianOpponentModel:
         # Increment the count for the observed action at this information set.
         # This is the core of the Dirichlet update.
         if observed_action in self.alpha_counts[info_set_key]:
-            self.alpha_counts[info_set_key][observed_action] += 1
+            self.alpha_counts[info_set_key][observed_action] += self.learning_rate
 
     # Calculates the posterior probability distribution over actions for a given information set.
     # This is the opponent's estimated strategy based on observations.
@@ -48,3 +49,15 @@ class BayesianOpponentModel:
 
         posterior_strategy = {action: count / total_counts for action, count in current_counts.items()}
         return posterior_strategy
+    
+    def get_full_posterior_policy(self):
+        """
+        Returns the full posterior policy for all information sets.
+        This is useful for getting a complete view of the opponent's estimated strategy.
+        """
+        full_policy = {}
+        for info_set_key in ALL_INFOSETS:
+            full_policy[info_set_key] = self.get_posterior_strategy(info_set_key)
+        # return a copy
+        full_policy = {k: v.copy() for k, v in full_policy.items()}
+        return full_policy

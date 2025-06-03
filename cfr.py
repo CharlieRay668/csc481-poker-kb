@@ -11,6 +11,26 @@ class CFRTrainer:
     def __init__(self):
         self.cumulative_regrets = defaultdict(lambda: defaultdict(float))
         self.strategy_sum_across_iterations = defaultdict(lambda: defaultdict(float))
+        self._is_seeded_or_has_prior_sum = False 
+
+    def clear_cumulative_regrets(self):  
+        """Clears only the cumulative regrets, leaving strategy sums intact if desired."""
+        self.cumulative_regrets = defaultdict(lambda: defaultdict(float))
+
+    def seed_strategy_sum(self, policy_to_seed, weight: float):
+        """
+        Initializes or adds to the strategy_sum based on a given policy and weight.
+        This effectively acts as a prior for the average strategy calculation.
+        """
+        self.strategy_sum_across_iterations = defaultdict(lambda: defaultdict(float)) # Start fresh or add? Let's start fresh for seeding.
+        for infoset, actions_probs in policy_to_seed.items():
+            for action, prob in actions_probs.items():
+                # Ensure LEGAL_ACTIONS_AT_INFOSET is available or handled if policy_to_seed might be sparse
+                if infoset not in LEGAL_ACTIONS_AT_INFOSET or action not in LEGAL_ACTIONS_AT_INFOSET[infoset]:
+                    # print(f"Warning: Action {action} for infoset {infoset} in seed policy not in LEGAL_ACTIONS. Skipping.")
+                    continue # Or handle more gracefully
+                self.strategy_sum_across_iterations[infoset][action] = prob * weight
+        self._is_seeded_or_has_prior_sum = True
 
     def _calculate_current_strategy_profile(self, info_set_key):
         legal_actions_list = LEGAL_ACTIONS_AT_INFOSET[info_set_key]
@@ -50,7 +70,7 @@ class CFRTrainer:
     def traverse_game_tree(self, p0_card, p1_card, public_card_rank,
                            preflop_hist_str, postflop_hist_str,
                            current_pot, p0_chips_committed, p1_chips_committed,
-                           acting_player_idx, fixed_opponent_policy,
+                           acting_player_idx, inferred_op_policy,
                            reach_p0: float, reach_p1: float): # Added reach probabilities
 
 
@@ -93,7 +113,7 @@ class CFRTrainer:
                 expected_utility_from_chance_node += self.traverse_game_tree(
                     p0_card, p1_card, pub_r, preflop_hist_str, '', 
                     current_pot, p0_chips_committed, p1_chips_committed,
-                    0, fixed_opponent_policy, # Player 0 starts post-flop betting
+                    0, inferred_op_policy, # Player 0 starts post-flop betting
                     reach_p0, reach_p1 # Reach probs don't change for opponent due to chance event
                 )
             return expected_utility_from_chance_node / num_possible_public_ranks
@@ -111,8 +131,8 @@ class CFRTrainer:
         player_strategy_profile = self._calculate_current_strategy_profile(info_set_key)
 
         strategy_to_use = player_strategy_profile
-        if acting_player_idx == 1 and fixed_opponent_policy is not None:
-            strategy_to_use = fixed_opponent_policy.get(info_set_key, 
+        if acting_player_idx == 1 and inferred_op_policy is not None:
+            strategy_to_use = inferred_op_policy.get(info_set_key, 
                                                      {a: 1/len(legal_actions_list) for a in legal_actions_list})
         
         node_expected_value = 0.0
@@ -151,7 +171,7 @@ class CFRTrainer:
                 next_preflop_hist_str, next_postflop_hist_str,
                 new_pot, new_p0_chips_committed, new_p1_chips_committed,
                 1 - acting_player_idx,
-                fixed_opponent_policy,
+                inferred_op_policy,
                 new_reach_p0, new_reach_p1 # Pass updated reach probs
             )
             
@@ -160,7 +180,7 @@ class CFRTrainer:
         
         # 4. Update Regrets and Strategy Sum
         # Update only if it's the learner's turn or self-play for the current acting_player_idx
-        if fixed_opponent_policy is None or acting_player_idx == 0:
+        if inferred_op_policy is None or acting_player_idx == 0:
             # Determine whose reach probability to use for weighting
             # Regrets are weighted by opponent's reach to this state
             # Strategy sum is weighted by current player's reach to this state
@@ -185,7 +205,10 @@ class CFRTrainer:
         
         return node_expected_value
 
-    def train_iterations(self, num_iterations, fixed_opponent_policy=None):
+    def train_iterations(self, num_iterations, inferred_op_policy=None, reset_regrets_before_training = True):
+        if reset_regrets_before_training:
+            self.clear_cumulative_regrets() 
+
         unique_card_deals = generate_unique_deals()
         for i in range(num_iterations):
             p0_card, p1_card = random.choice(unique_card_deals)
@@ -195,9 +218,11 @@ class CFRTrainer:
                 p0_card, p1_card, None, '', '', 
                 2, 1, 1, # pot, p0_comm, p1_comm
                 0, # P0 starts
-                fixed_opponent_policy,
+                inferred_op_policy,
                 1.0, 1.0 # initial reach_p0, reach_p1
             )
+
+        self._is_seeded_or_has_prior_sum = True
 
     def calculate_average_strategy(self):
         average_strategy_profile = {}
@@ -220,6 +245,6 @@ class CFRTrainer:
 
     def run_self_play(self, iterations=60000):
         print(f"Running self-play for {iterations} iterations...")
-        self.train_iterations(num_iterations=iterations, fixed_opponent_policy=None)
+        self.train_iterations(num_iterations=iterations, inferred_op_policy=None)
         print("Self-play complete. Calculating average strategy.")
         return self.calculate_average_strategy()
