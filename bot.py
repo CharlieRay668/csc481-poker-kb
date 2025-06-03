@@ -27,7 +27,7 @@ class AdaptivePokerBot:
         # Counter for observations before triggering a policy update.
         self.observations_since_last_update = 0
         self.update_batch_size = 10 # Update policy every 10 observations
-        self.cfr_update_iterations = 200 # Number of CFR iterations for each update
+        self.cfr_update_iterations = 1 # Number of CFR iterations for each update
 
     # Observes the opponent's action and updates the Bayesian model.
     # Triggers a policy recalculation if enough observations have been made.
@@ -67,7 +67,7 @@ class AdaptivePokerBot:
     def choose_action(self, own_info_set_key):
         # Get the strategy for the current info set from the bot's current policy.
         strategy_profile = self.current_acting_policy.get(own_info_set_key)
-
+        # print(f"Adaptive bot strategy at {own_info_set_key}: {strategy_profile}")
         # Unpack actions and their probabilities from the strategy profile.
         actions = list(strategy_profile.keys())
         probabilities = list(strategy_profile.values())

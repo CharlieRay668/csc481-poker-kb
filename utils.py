@@ -91,13 +91,21 @@ def determine_showdown_winner(p0_card, p1_card, public_card):
 
 # Generates a unique key for an information set.
 # An information set groups game states where a player has the same information.
-def get_info_set_key(player_index, private_card_rank, public_card_rank, preflop_history, postflop_history):
+# def get_info_set_key(player_index, private_card_rank, public_card_rank, preflop_history, postflop_history):
+#     # Pre-flop round: public card is None. History is just preflop_history.
+#     if public_card_rank is None:
+#         return (player_index, private_card_rank, None, preflop_history)
+#     # Post-flop round: public card is known. History includes preflop and postflop actions, separated by '/'.
+#     else:
+#         return (player_index, private_card_rank, public_card_rank, f'{preflop_history}/{postflop_history}')
+    
+def get_info_set_key(private_card_rank, public_card_rank, preflop_history, postflop_history):
     # Pre-flop round: public card is None. History is just preflop_history.
     if public_card_rank is None:
-        return (player_index, private_card_rank, None, preflop_history)
+        return (private_card_rank, None, preflop_history)
     # Post-flop round: public card is known. History includes preflop and postflop actions, separated by '/'.
     else:
-        return (player_index, private_card_rank, public_card_rank, f'{preflop_history}/{postflop_history}')
+        return (private_card_rank, public_card_rank, f'{preflop_history}/{postflop_history}')
 
 # Enumerates all possible information sets in the game.
 def enumerate_all_infosets():
@@ -129,24 +137,26 @@ def enumerate_all_infosets():
     all_infosets = []
 
     # Pre-flop information sets
-    for player_idx in (0, 1): # For each player
-        for private_card_r in RANKS: # For each possible private card rank
-            # Iterate through non-terminal pre-flop histories
-            for pre_hist in [h for h in preflop_round_histories if not is_round_terminal(h)]:
-                all_infosets.append(get_info_set_key(player_idx, private_card_r, None, pre_hist, ''))
+    # for player_idx in (0, 1): # For each player
+    for private_card_r in RANKS: # For each possible private card rank
+        # Iterate through non-terminal pre-flop histories
+        for pre_hist in [h for h in preflop_round_histories if not is_round_terminal(h)]:
+            # all_infosets.append(get_info_set_key(player_idx, private_card_r, None, pre_hist, ''))
+            all_infosets.append(get_info_set_key(private_card_r, None, pre_hist, ''))
 
     # Post-flop information sets
     # These occur after a pre-flop round that didn't end in a fold.
     preflop_histories_leading_to_postflop = [
         h for h in preflop_round_histories if is_round_terminal(h) and not h.endswith('f')
     ]
-    for player_idx in (0, 1): # For each player
-        for private_card_r in RANKS: # For each possible private card rank
-            for pre_hist in preflop_histories_leading_to_postflop: # For each pre-flop history that leads to post-flop
-                for public_card_r in RANKS: # For each possible public card rank
-                    # Iterate through non-terminal post-flop histories
-                    for post_hist in [h for h in postflop_round_histories if not is_round_terminal(h)]:
-                        all_infosets.append(get_info_set_key(player_idx, private_card_r, public_card_r, pre_hist, post_hist))
+    # for player_idx in (0, 1): # For each player
+    for private_card_r in RANKS: # For each possible private card rank
+        for pre_hist in preflop_histories_leading_to_postflop: # For each pre-flop history that leads to post-flop
+            for public_card_r in RANKS: # For each possible public card rank
+                # Iterate through non-terminal post-flop histories
+                for post_hist in [h for h in postflop_round_histories if not is_round_terminal(h)]:
+                    # all_infosets.append(get_info_set_key(player_idx, private_card_r, public_card_r, pre_hist, post_hist))
+                    all_infosets.append(get_info_set_key(private_card_r, public_card_r, pre_hist, post_hist))
     return all_infosets
 
 # Pre-calculate all information sets and legal actions for each.
@@ -155,7 +165,7 @@ ALL_INFOSETS = enumerate_all_infosets()
 
 LEGAL_ACTIONS_AT_INFOSET = {
     info_set_key: get_legal_actions(
-        info_set_key[3].split('/')[-1], # Current round's history string (part after '/' if post-flop)
+        info_set_key[2].split('/')[-1], # Current round's history string (part after '/' if post-flop)
         MAX_RAISES_POSTFLOP if info_set_key[2] is not None else MAX_RAISES_PREFLOP # Max raises depends on round
     )
     for info_set_key in ALL_INFOSETS
