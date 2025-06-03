@@ -27,8 +27,13 @@ def is_round_terminal(round_history_string):
     # Check for sequences indicating the end of betting:
     # 'cc': both players check (or player 2 checks after player 1 checks)
     # 'rc': player 2 calls player 1's raise (or player 1 calls player 2's raise)
-    if len(round_history_string) >= 2 and round_history_string[-2:] in ('cc', 'rc'):
-        return True
+    # or two raises during either preflop or postflop rounds
+    # if len(round_history_string) >= 2 and round_history_string[-2:] in ('cc', 'rc'):
+    #     return True
+    if len(round_history_string) >= 2:
+        last_two_actions = round_history_string[-2:]
+        if last_two_actions in ('cc', 'rc'):
+            return True
     return False
 
 # Returns a list of legal actions for the current player given the round's history and raise limit.

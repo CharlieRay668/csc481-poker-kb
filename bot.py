@@ -27,7 +27,7 @@ class AdaptivePokerBot:
         # Counter for observations before triggering a policy update.
         self.observations_since_last_update = 0
         self.update_batch_size = 10 # Update policy every 10 observations
-        self.cfr_update_iterations = 1 # Number of CFR iterations for each update
+        self.cfr_update_iterations = 200 # Number of CFR iterations for each update
 
     # Observes the opponent's action and updates the Bayesian model.
     # Triggers a policy recalculation if enough observations have been made.

@@ -1,8 +1,8 @@
 {
     "adaptive": {
-        "aggressive-alpha-0.6": -179.6
+        "aggressive-alpha-0.6": -1280.4
     },
     "nash": {
-        "aggressive-alpha-0.6": 255.8
+        "aggressive-alpha-0.6": -6.2
     }
 }

@@ -1,8 +1,8 @@
 {
     "adaptive": {
-        "passive-alpha-0.4": -251.4
+        "passive-alpha-0.4": -375.6
     },
     "nash": {
-        "passive-alpha-0.4": -11.4
+        "passive-alpha-0.4": 238.6
     }
 }
