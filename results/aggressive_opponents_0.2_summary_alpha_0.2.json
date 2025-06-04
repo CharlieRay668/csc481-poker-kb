@@ -1,0 +1,17 @@
+{
+  "sim_params": {
+    "name": "aggressive_opponents_0.2",
+    "alpha": 0.2,
+    "hands": 10000,
+    "trials": 10
+  },
+  "adaptive_perf": {
+    "aggressive-alpha-0.2": 552.4
+  },
+  "nash_perf": {
+    "aggressive-alpha-0.2": 908.0
+  },
+  "adaptive_kl": {
+    "aggressive-alpha-0.2": 8.115641802465987
+  }
+}

@@ -77,7 +77,9 @@ def play_one_hand(adaptive_bot, opponent_fixed_policy, adaptive_update=True):
                 estimated_policy = adaptive_bot.get_opponent_belief()
         bet_size_this_round = POSTFLOP_BET_SIZE if public_card else PREFLOP_BET_SIZE
         current_round_hist_for_prev_action = postflop_history_str if public_card else preflop_history_str
-        previous_action_in_round = current_round_hist_for_prev_action[-1] if current_round_hist_for_prev_action else ''
+        previous_action_in_round = preflop_history_str + postflop_history_str
+        previous_action_in_round = previous_action_in_round[-1] if previous_action_in_round else ''
+        # previous_action_in_round = current_round_hist_for_prev_action[-1] if current_round_hist_for_prev_action else ''
         if action == 'r':
             pot += bet_size_this_round
         elif action == 'c' and previous_action_in_round == 'r':

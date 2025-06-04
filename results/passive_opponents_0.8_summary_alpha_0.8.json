@@ -1,17 +1,17 @@
 {
   "sim_params": {
-    "name": "tight_opponents_0.8",
+    "name": "passive_opponents_0.8",
     "alpha": 0.8,
     "hands": 10000,
     "trials": 10
   },
   "adaptive_perf": {
-    "tight-alpha-0.8": 21416.0
+    "passive-alpha-0.8": 4648.2
   },
   "nash_perf": {
-    "tight-alpha-0.8": 21043.6
+    "passive-alpha-0.8": 3771.8
   },
   "adaptive_kl": {
-    "tight-alpha-0.8": 60.84010385863094
+    "passive-alpha-0.8": 32.87496285270181
   }
 }

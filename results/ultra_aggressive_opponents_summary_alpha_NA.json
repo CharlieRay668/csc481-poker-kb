@@ -2,16 +2,16 @@
   "sim_params": {
     "name": "ultra_aggressive_opponents",
     "alpha": null,
-    "hands": 1000,
+    "hands": 10000,
     "trials": 10
   },
   "adaptive_perf": {
-    "aggressive": -140.2
+    "aggressive": -1161.0
   },
   "nash_perf": {
-    "aggressive": -107.2
+    "aggressive": -1264.0
   },
   "adaptive_kl": {
-    "aggressive": 1927.7315919483128
+    "aggressive": 1742.737937541972
   }
 }

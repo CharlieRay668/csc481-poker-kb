@@ -1,0 +1,17 @@
+{
+  "sim_params": {
+    "name": "passive_opponents_0.4",
+    "alpha": 0.4,
+    "hands": 10000,
+    "trials": 10
+  },
+  "adaptive_perf": {
+    "passive-alpha-0.4": 2483.6
+  },
+  "nash_perf": {
+    "passive-alpha-0.4": 1939.0
+  },
+  "adaptive_kl": {
+    "passive-alpha-0.4": 17.04999460179905
+  }
+}

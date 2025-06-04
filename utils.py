@@ -1,6 +1,3 @@
-# This file contains utility functions for game logic, information set generation,
-# and policy manipulation used across different parts of the Leduc Poker bot.
-
 import random
 from constants import RANKS, DECK, RANK_VALUE, MAX_RAISES_PREFLOP, MAX_RAISES_POSTFLOP
 

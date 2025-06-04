@@ -1,0 +1,17 @@
+{
+  "sim_params": {
+    "name": "loose_opponents_0.6",
+    "alpha": 0.6,
+    "hands": 10000,
+    "trials": 10
+  },
+  "adaptive_perf": {
+    "loose-alpha-0.6": 1046.6
+  },
+  "nash_perf": {
+    "loose-alpha-0.6": 1341.8
+  },
+  "adaptive_kl": {
+    "loose-alpha-0.6": 28.250590355505587
+  }
+}

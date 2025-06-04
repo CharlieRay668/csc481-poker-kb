@@ -22,9 +22,9 @@ class AdaptivePokerBot:
 
         # Counter for observations before triggering a policy update.
         self.observations_since_last_update = 0
-        self.update_batch_size = 10 # Update policy every 10 observations
+        self.update_batch_size = 50 # Update policy every 10 observations
         self.cfr_update_iterations = 200 # Number of CFR iterations for each update
-        self.prior_strength_for_cfr = 10000
+        self.prior_strength_for_cfr = 40000
         self._seed_cfr_with_base_policy()
 
     def _seed_cfr_with_base_policy(self):

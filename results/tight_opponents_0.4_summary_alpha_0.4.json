@@ -1,0 +1,17 @@
+{
+  "sim_params": {
+    "name": "tight_opponents_0.4",
+    "alpha": 0.4,
+    "hands": 10000,
+    "trials": 10
+  },
+  "adaptive_perf": {
+    "tight-alpha-0.4": 11577.8
+  },
+  "nash_perf": {
+    "tight-alpha-0.4": 11099.6
+  },
+  "adaptive_kl": {
+    "tight-alpha-0.4": 24.57795883797947
+  }
+}

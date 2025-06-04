@@ -1,14 +1,10 @@
-# This file implements the Bayesian Opponent Model using a Dirichlet distribution
-# to maintain beliefs about the opponent's strategy at each information set.
-
 from collections import defaultdict
-from utils import LEGAL_ACTIONS_AT_INFOSET, ALL_INFOSETS # For fallback and iteration
+from utils import LEGAL_ACTIONS_AT_INFOSET, ALL_INFOSETS 
 
 class BayesianOpponentModel:
     def __init__(self, prior_belief=None):
         # Initialize alpha parameters for the Dirichlet distribution.
         # For each information set, and for each legal action in that set,
-        # we start with a small prior count (e.g., 0.1). This represents weak prior belief.
         self.alpha_counts = {}
         self.prior_belief = prior_belief
         self.learning_rate = 2
