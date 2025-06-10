@@ -50,7 +50,7 @@ run clean_images.py to combine plots, which will be saved in the "cleaned_result
 ![Special Opponents](https://github.com/CharlieRay668/csc481-poker-kb/blob/master/cleaned_results/special_opponents_combined.png)
 
 ### Self-Play against Nash
-
+![Self Play](https://github.com/CharlieRay668/csc481-poker-kb/blob/master/results/adaptive_bot_self_play.png)
 
 Additionally, the results of freezing the best response strategy, as mentioned in our paper, are as follows:
 
