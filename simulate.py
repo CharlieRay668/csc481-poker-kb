@@ -145,7 +145,7 @@ def run_simulation(player_strat, opponent_style_name, opponent_policy, num_hands
     
     if verbose:
         print(f"Simulation vs {opponent_style_name} complete. Final bankroll change: {bankroll_history[-1]}")
-    return bankroll_history, opponent_policy_history
+    return bankroll_history, opponent_policy_history, adaptive_bot
 
 
 def simulate_nash_loose_opponents(nash_policy, num_hands=1000, adaptive_update=True, alpha=0.1):
@@ -157,7 +157,7 @@ def simulate_nash_loose_opponents(nash_policy, num_hands=1000, adaptive_update=T
     loose_nash = shift_loose(nash_policy, alpha=alpha)
     opponent_name = f'loose-alpha-{alpha}'
     # Run the simulation against the loose opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name=opponent_name,
         opponent_policy=loose_nash,
@@ -186,7 +186,7 @@ def siulate_nash_tight_opponents(nash_policy, num_hands=1000, adaptive_update=Tr
     tight_nash = shift_tight(nash_policy, alpha=alpha)
     opponent_name = f'tight-alpha-{alpha}'
     # Run the simulation against the tight opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name=opponent_name,
         opponent_policy=tight_nash,
@@ -216,7 +216,7 @@ def simulate_nash_aggressive_opponents(nash_policy, num_hands=1000, adaptive_upd
     aggressive_nash = shift_agressive(nash_policy, alpha=alpha)
     opponent_name = f'aggressive-alpha-{alpha}'
     # Run the simulation against the aggressive opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name=opponent_name,
         opponent_policy=aggressive_nash,
@@ -247,7 +247,7 @@ def simulate_nash_passive_opponents(nash_policy, num_hands=1000, adaptive_update
     passive_nash = shift_passive(nash_policy, alpha=alpha)
     opponent_name = f'passive-alpha-{alpha}'
     # Run the simulation against the passive opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name=opponent_name,
         opponent_policy=passive_nash,
@@ -276,7 +276,7 @@ def simulate_uniform(nash_policy, num_hands=1000, adaptive_update=True, alpha=No
     uniform_strat = create_fixed_policy('uniform')
     
     # Run the simulation against the uniform opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name='uniform',
         opponent_policy=uniform_strat,
@@ -305,7 +305,7 @@ def simulate_aggressive(nash_policy, num_hands=1000, adaptive_update=True, alpha
     aggressive_strat = create_fixed_policy('aggressive')
     
     # Run the simulation against the aggressive opponent
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name='aggressive',
         opponent_policy=aggressive_strat,
@@ -336,7 +336,7 @@ def against_self_play(nash_policy, num_hands=1000, adaptive_update=True):
     op_poly = nash_policy
     
     # Run the simulation
-    bankroll_history, estimated_op_strat = run_simulation(
+    bankroll_history, estimated_op_strat, _ = run_simulation(
         player_strat=nash_policy,
         opponent_style_name='self-play',
         opponent_policy=op_poly,
@@ -466,6 +466,122 @@ def simulate_plot_and_save(num_simulation_hands, num_trials, simulation_function
         json.dump(output_summary, f, indent=2)
 
 
+def train_best_response_to_fixed(fixed_policy, num_hands=1000):
+    """
+    Trains the adaptive bot to find the best response to a fixed opponent policy.
+    This is useful for evaluating how well the adaptive bot can adapt to a known strategy.
+    """
+
+    adaptive_bot = AdaptivePokerBot(initial_equilibrium_policy=fixed_policy)
+
+    for iteration in range(num_hands):
+        # Play one hand and get the payoff for the adaptive bot.
+        play_one_hand(adaptive_bot, fixed_policy, adaptive_update=True)
+
+    
+    # return the policy of the adaptive bot after training
+    return adaptive_bot.get_current_policy()
+
+def simulate_fixed_fixed(bot_policy, fixed_policy, num_hands=1000):
+    """
+    Simulates the adaptive bot against a fixed opponent policy.
+    Returns the bankroll history and the estimated opponent strategy.
+    """
+    bankroll_history = [0.0]  # Start with an initial bankroll of 0
+    for iteration in range(num_hands):
+        # Play one hand and get the payoff for the adaptive bot.
+        payoff_for_adaptive_bot, history, _ = play_one_hand(
+            AdaptivePokerBot(initial_equilibrium_policy=bot_policy),
+            fixed_policy,
+            adaptive_update=False  # No updates in this fixed vs fixed scenario
+        )
+        bankroll_history.append(bankroll_history[-1] + payoff_for_adaptive_bot)
+    # Return the final bankroll history
+    return bankroll_history
+
+
+def train_and_simulate_fixed_opponents(nash_policy, num_hands=1000, num_trials=100):
+    """
+    Trains the adaptive bot against various fixed opponent policies and simulates the results.
+    Returns a dictionary with the results for each fixed opponent type.
+    """
+    ultra_aggressive_policy = create_fixed_policy('aggressive')
+    uniform_policy = create_fixed_policy('uniform')
+    aggressive_shifted = shift_agressive(nash_policy, alpha=0.5)
+    loose_shifted = shift_loose(nash_policy, alpha=0.5)
+    tight_shifted = shift_tight(nash_policy, alpha=0.5)
+    passive_shifted = shift_passive(nash_policy, alpha=0.5)
+    fixed_opponents = {
+        'ultra_aggressive': ultra_aggressive_policy,
+        'uniform': uniform_policy,
+        'aggressive_shifted': aggressive_shifted,
+        'loose_shifted': loose_shifted,
+        'tight_shifted': tight_shifted,
+        'passive_shifted': passive_shifted
+    }
+    results = {}
+    for opponent_name, opponent_policy in fixed_opponents.items():
+        print(f"Training best response to {opponent_name}...")
+        # Train the adaptive bot to find the best response to the fixed opponent policy
+        best_response_policy = train_best_response_to_fixed(opponent_policy, num_hands=num_hands)
+        print(f"Simulating against {opponent_name}...")
+        total_bankroll_histories = []
+        for _ in range(num_trials):
+        # Simulate the adaptive bot against the fixed opponent policy
+            bankroll_history = simulate_fixed_fixed(best_response_policy, opponent_policy, num_hands=num_hands)
+            total_bankroll_histories.append(bankroll_history)
+        # Average the bankroll histories across trials
+        bankroll_history = np.mean(total_bankroll_histories, axis=0).tolist()
+        
+        results[opponent_name] = {
+            "hist": bankroll_history,
+            "final_bankroll": bankroll_history[-1]
+        }
+
+    # Return average gain per hand for each opponent
+    avg_results = {name: {"avg_gain_per_hand": (res["final_bankroll"] - res["hist"][0]) / num_hands} for name, res in results.items()}
+    return avg_results
+
+def train_and_simulate_fixed_opponents_with_nash(nash_policy, num_hands=1000, num_trials=100):
+    """
+    Nash policy benchmark against fixed opponents.
+    """
+    ultra_aggressive_policy = create_fixed_policy('aggressive')
+    uniform_policy = create_fixed_policy('uniform')
+    aggressive_shifted = shift_agressive(nash_policy, alpha=0.5)
+    loose_shifted = shift_loose(nash_policy, alpha=0.5)
+    tight_shifted = shift_tight(nash_policy, alpha=0.5)
+    passive_shifted = shift_passive(nash_policy, alpha=0.5)
+    fixed_opponents = {
+        'ultra_aggressive': ultra_aggressive_policy,
+        'uniform': uniform_policy,
+        'aggressive_shifted': aggressive_shifted,
+        'loose_shifted': loose_shifted,
+        'tight_shifted': tight_shifted,
+        'passive_shifted': passive_shifted
+    }
+    results = {}
+    for opponent_name, opponent_policy in fixed_opponents.items():
+        print(f"Simulating Nash policy against {opponent_name}...")
+        # Simulate the Nash policy against the fixed opponent policy
+        total_bankroll_histories = []
+        for _ in range(num_trials):
+            bankroll_history = simulate_fixed_fixed(nash_policy, opponent_policy, num_hands=num_hands)
+            total_bankroll_histories.append(bankroll_history)
+        # Average the bankroll histories across trials
+        bankroll_history = np.mean(total_bankroll_histories, axis=0).tolist()
+
+        results[opponent_name] = {
+            "hist": bankroll_history,
+            "final_bankroll": bankroll_history[-1]
+        }
+    # Return average gain per hand for each opponent
+    avg_results = {name: {"avg_gain_per_hand": (res["final_bankroll"] - res["hist"][0]) / num_hands} for name, res in results.items()}
+    return avg_results
+
+
+    
+
 # Main execution block
 if __name__ == '__main__':
     print('--- Leduc Poker Bot Simulation ---')
@@ -541,3 +657,16 @@ if __name__ == '__main__':
     plt.legend()
     plt.tight_layout()  # Adjusts plot to ensure everything fits without overlapping
     plt.show()
+
+    # Avg hand against fixed opponents, after freezing.
+    print('Simulating Adaptive Bot against fixed opponents...')
+    fixed_opponent_results = train_and_simulate_fixed_opponents(complete_nash_policy, num_hands=num_simulation_hands)
+    print('Adaptive Bot vs Fixed Opponents Results:')
+    for opponent, result in fixed_opponent_results.items():
+        print(f"{opponent}: Avg Gain per Hand = {result['avg_gain_per_hand']:.4f}")
+    # Avg hand against fixed opponents with Nash policy, for comparision.
+    print('Simulating Nash Policy against fixed opponents...')
+    fixed_opponent_nash_results = train_and_simulate_fixed_opponents_with_nash(complete_nash_policy, num_hands=num_simulation_hands)
+    print('Nash Policy vs Fixed Opponents Results:')
+    for opponent, result in fixed_opponent_nash_results.items():
+        print(f"{opponent}: Avg Gain per Hand = {result['avg_gain_per_hand']:.4f}")

@@ -1,4 +1,15 @@
-Average final bankroll change against uniform opponent (with updates): 10414.58
-Average final bankroll change against aggressive opponent (with updates): 26616.48
-Average final bankroll change against uniform opponent (no updates): 10425.44
-Average final bankroll change against aggressive opponent (no updates): 26704.24
+Adaptive Bot vs Fixed Opponents Results:
+ultra_aggressive: Avg Gain per Hand = -0.1020
+uniform: Avg Gain per Hand = 1.8972
+aggressive_shifted: Avg Gain per Hand = 0.1146
+loose_shifted: Avg Gain per Hand = 0.1372
+tight_shifted: Avg Gain per Hand = 1.9638
+passive_shifted: Avg Gain per Hand = 0.1368
+
+Nash Policy vs Fixed Opponents Results:
+ultra_aggressive: Avg Gain per Hand = 0.1052
+uniform: Avg Gain per Hand = 1.4070
+aggressive_shifted: Avg Gain per Hand = 0.2020
+loose_shifted: Avg Gain per Hand = 0.1558
+tight_shifted: Avg Gain per Hand = 1.3518
+passive_shifted: Avg Gain per Hand = 0.0850

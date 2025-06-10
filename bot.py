@@ -90,3 +90,9 @@ class AdaptivePokerBot:
         This is useful for debugging or understanding the bot's internal state.
         """
         return self.bayesian_opponent_model.get_full_posterior_policy()
+    
+    def get_current_policy(self):
+        """
+        Returns the current acting policy of the bot.
+        """
+        return self.current_acting_policy
